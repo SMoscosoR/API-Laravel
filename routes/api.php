@@ -1,20 +1,10 @@
 <?php
 
-use App\Models\Student;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\StudentController;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\studentController;
-
-Route::get("/students", [studentController::class,'index']);
-
-Route::get("/students/{id}", [studentController::class,'show']);
-
-Route::post("/students", [studentController::class,'store']);
-
-Route::put("/students/{id}", [studentController::class,'update']);
-
-Route::patch("/students/{id}", [studentController::class,'updatePartial']);
-
-
-Route::delete("/students/{id}", [studentController::class,'destroy']);
+Route::apiResource('students', StudentController::class);
+Route::get('/students/{student}', [StudentController::class, 'show']);
+Route::put('/students/{student}', [StudentController::class, 'update']);
+Route::patch('/students/{student}', [StudentController::class, 'updatePartial']);
+Route::delete('/students/{student}', [StudentController::class, 'destroy']);
