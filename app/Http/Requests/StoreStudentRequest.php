@@ -8,7 +8,7 @@ class StoreStudentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Permitir que todos puedan hacer esta solicitud
+        return true;
     }
 
     public function rules(): array
@@ -17,7 +17,8 @@ class StoreStudentRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:students,email',
             'phone' => 'required|digits:10',
-            'language' => 'required|in:English,Spanish,French',
+            'languages' => 'array',
+            'languages.*' => 'exists:languages,id'
         ];
     }
 }

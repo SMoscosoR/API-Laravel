@@ -14,10 +14,11 @@ class UpdateStudentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:students,email,' . $this->route('student')->id,
-            'phone' => 'required|digits:10',
-            'language' => 'required|in:English,Spanish,French',
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:students,email,' . $this->route('student')->id,
+            'phone' => 'sometimes|digits:10',
+            'languages' => 'sometimes|array',
+            'languages.*' => 'exists:languages,id'
         ];
     }
 }

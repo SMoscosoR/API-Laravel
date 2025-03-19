@@ -11,7 +11,10 @@ class Student extends Model
     protected $fillable = [
         'name',
         'email',
-        'phone',
-        'language'
+        'phone'
     ];
+    public function languages()
+    {
+        return $this->belongsToMany(Language::class, 'language_student');
+    }    
 }

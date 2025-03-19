@@ -13,58 +13,45 @@ class StudentController extends Controller
 {
     public function index()
     {
-        $students = Student::all();
+        $students = Student::with('languages')->get();
 
-        // if ($students->isEmpty()) {
-        //     $data = [
-        //         'message' => "No se encontraron estudiantes",
-        //         'status'=> 404
-        //     ];
-        //     return response()->json($data, 404);
-        // }
-        $data = [
-            'students' => $students,
-            'status'=> 404
-        ];   
-        return response()->json($students, 200);
+        return response()->json([
+            'students' => $students
+        ], 200);
     }
     
     public function store(StoreStudentRequest $request)
     {
         $student = Student::create($request->validated());
 
+        if ($request->has('languages')) {
+            $student->languages()->sync($request->languages); // Verifica que esto se está ejecutando
+        }
+
         return response()->json([
             'message' => 'Estudiante creado correctamente',
-            'student' => $student
+            'student' => $student->load('languages')
         ], 201);
     }
 
     public function show(Student $student)
     {
         return response()->json([
-            'student' => $student,
-            'status'=> 200
+            'student' => $student->load('languages')
         ], 200);
     }
 
-    
-    public function destroy(Student $student)
-    {
-        $student->delete();
-
-        return response()->json([
-            'message' => 'Estudiante eliminado correctamente'
-        ], 200);
-    }
-
-    
     public function update(UpdateStudentRequest $request, Student $student)
     {
         $student->update($request->validated());
 
+        if ($request->has('languages')) {
+            $student->languages()->sync($request->languages);
+        }
+
         return response()->json([
             'message' => 'Estudiante actualizado correctamente',
-            'student' => $student
+            'student' => $student->load('languages')
         ], 200);
     }
     
@@ -74,7 +61,17 @@ class StudentController extends Controller
 
         return response()->json([
             'message' => 'Estudiante actualizado parcialmente',
-            'student' => $student
+            'student' => $student->load('languages')
+        ], 200);
+    }
+
+    public function destroy(Student $student)
+    {
+        $student->languages()->detach();
+        $student->delete();
+
+        return response()->json([
+            'message' => 'Estudiante eliminado correctamente'
         ], 200);
     }
 }
