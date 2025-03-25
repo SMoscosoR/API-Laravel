@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name'); // Nombre del idioma
             $table->timestamps();
+            $table->softDeletes(); // SoftDeletes con zona horaria
         });
     }
 
