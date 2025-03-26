@@ -22,14 +22,26 @@ class LanguageController extends Controller
     /**
      * Guardar un nuevo idioma.
      */
-    public function store(StoreLanguageRequest $request): JsonResponse
+    public function storeOrRestore(StoreLanguageRequest $request): JsonResponse
     {
-        $language = Language::create($request->validated());
+        $data = $request->validated();
 
-        return response()->json([
-            'message' => 'Idioma creado correctamente',
-            'language' => $language
-        ], Response::HTTP_CREATED);
+        $language = Language::withTrashed()->firstOrNew(['name' => $data['name']]);
+
+        if ($language->exists) {
+            if ($language->trashed()) {
+                $language->restore();
+                return response()->json([
+                    'message' => 'El idioma fue restaurado correctamente',
+                    'data' => $language->fresh()
+                ], Response::HTTP_OK);
+            }
+
+            return response()->json(['message' => 'El idioma ya existe'], Response::HTTP_CONFLICT);
+        }
+
+        $language->fill($data)->save();
+        return response()->json($language, Response::HTTP_CREATED);
     }
 
     /**

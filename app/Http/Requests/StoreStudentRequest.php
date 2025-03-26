@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreStudentRequest extends FormRequest
 {
@@ -15,7 +17,11 @@ class StoreStudentRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:students,email',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('students', 'email')->whereNull('deleted_at') // Ignora los eliminados
+            ],
             'phone' => 'required|digits:10',
             'languages' => 'array',
             'languages.*' => 'exists:languages,id'

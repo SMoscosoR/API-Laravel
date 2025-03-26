@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreLanguageRequest extends FormRequest
 {
@@ -14,7 +15,12 @@ class StoreLanguageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255|unique:languages,name', // El nombre del idioma debe ser único
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('languages', 'name')->whereNull('deleted_at') // Permite restaurar si fue eliminado
+            ],
         ];
     }
 }

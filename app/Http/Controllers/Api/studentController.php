@@ -7,7 +7,9 @@ use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Requests\UpdateStudentPartialRequest;
 use App\Models\Student;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class StudentController extends Controller
 {
@@ -20,18 +22,35 @@ class StudentController extends Controller
         ], 200);
     }
     
-    public function store(StoreStudentRequest $request)
+    public function storeOrRestore(StoreStudentRequest $request): JsonResponse
     {
-        $student = Student::create($request->validated());
+        $data = $request->validated();
+        $student = Student::withTrashed()->firstOrNew(['email' => $data['email']]);
+
+        if ($student->exists) {
+            if ($student->trashed()) {
+                $student->restore();
+                return response()->json([
+                    'message' => 'El estudiante fue restaurado',
+                    'student' => $student->fresh()->load('languages')
+                ], Response::HTTP_OK); // 200 OK
+            }
+
+            return response()->json(['message' => 'El estudiante ya existe'], Response::HTTP_CONFLICT); // 409 Conflict
+        }
+
+        // Si no existía, lo creamos
+        $student->fill($data);
+        $student->save();
 
         if ($request->has('languages')) {
-            $student->languages()->sync($request->languages); // Verifica que esto se está ejecutando
+            $student->languages()->sync($request->languages);
         }
 
         return response()->json([
             'message' => 'Estudiante creado correctamente',
             'student' => $student->load('languages')
-        ], 201);
+        ], Response::HTTP_CREATED); // 201 Created
     }
 
     public function show(Student $student)
