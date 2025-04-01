@@ -7,90 +7,76 @@ use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Requests\UpdateStudentPartialRequest;
 use App\Models\Student;
+use App\Services\Student\StudentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 
 class StudentController extends Controller
 {
-    public function index()
-    {
-        $students = Student::with('languages')->get();
+    protected StudentService $studentService;
 
-        return response()->json([
-            'students' => $students
-        ], 200);
+    public function __construct(StudentService $studentService)
+    {
+        $this->studentService = $studentService;
     }
-    
+
+    public function index(): JsonResponse
+    {
+        return $this->studentService->getAllStudents();
+    }
+
     public function storeOrRestore(StoreStudentRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $student = Student::withTrashed()->firstOrNew(['email' => $data['email']]);
-
-        if ($student->exists) {
-            if ($student->trashed()) {
-                $student->restore();
-                return response()->json([
-                    'message' => 'El estudiante fue restaurado',
-                    'student' => $student->fresh()->load('languages')
-                ], Response::HTTP_OK); // 200 OK
-            }
-
-            return response()->json(['message' => 'El estudiante ya existe'], Response::HTTP_CONFLICT); // 409 Conflict
-        }
-
-        // Si no existía, lo creamos
-        $student->fill($data);
-        $student->save();
-
-        if ($request->has('languages')) {
-            $student->languages()->sync($request->languages);
-        }
-
-        return response()->json([
-            'message' => 'Estudiante creado correctamente',
-            'student' => $student->load('languages')
-        ], Response::HTTP_CREATED); // 201 Created
+        $response = $this->studentService->storeOrRestore($request->validated());
+        return $response;
     }
 
-    public function show(Student $student)
+    public function show(Student $student): JsonResponse
     {
-        return response()->json([
-            'student' => $student->load('languages')
-        ], 200);
+        return response()->json($student->load('languages'));
     }
 
-    public function update(UpdateStudentRequest $request, Student $student)
+    public function update(UpdateStudentRequest $request, Student $student): JsonResponse
     {
-        $student->update($request->validated());
-
-        if ($request->has('languages')) {
-            $student->languages()->sync($request->languages);
-        }
-
-        return response()->json([
-            'message' => 'Estudiante actualizado correctamente',
-            'student' => $student->load('languages')
-        ], 200);
-    }
-    
-    public function updatePartial(UpdateStudentPartialRequest $request, Student $student)
-    {
-        $student->update($request->validated());
-
-        return response()->json([
-            'message' => 'Estudiante actualizado parcialmente',
-            'student' => $student->load('languages')
-        ], 200);
+        $response = $this->studentService->updateStudent($request->validated(), $student);
+        return $response;
     }
 
-    public function destroy(Student $student)
+    public function updatePartial(UpdateStudentPartialRequest $request, Student $student): JsonResponse
     {
-        $student->languages()->detach();
-        $student->delete();
+        $response = $this->studentService->updateStudentPartial($request->validated(), $student);
+        return $response;
+    }
 
+    public function destroy(Student $student): JsonResponse
+    {
+        $response = $this->studentService->deleteStudent($student);
+        return $response;
+    }
+
+    public function trashed(): JsonResponse
+    {
         return response()->json([
-            'message' => 'Estudiante eliminado correctamente'
-        ], 200);
+            'message' => 'Lista de estudiantes eliminados obtenida correctamente',
+            'students' => Student::onlyTrashed()->get()
+        ], Response::HTTP_OK);
+    }
+
+    public function forceDelete(Student $student): JsonResponse
+    {
+        $student->forceDelete();
+        return response()->json([
+            'message' => 'Estudiante eliminado permanentemente'
+        ], Response::HTTP_OK);
+    }
+
+    public function assignLanguages(Request $request, Student $student): JsonResponse
+    {
+        $student->languages()->sync($request->languages);
+        return response()->json([
+            'message' => 'Idiomas asignados correctamente',
+            'student' => $student->load('languages')
+        ], Response::HTTP_OK);
     }
 }

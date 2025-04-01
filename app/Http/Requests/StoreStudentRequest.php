@@ -22,9 +22,15 @@ class StoreStudentRequest extends FormRequest
                 'email',
                 Rule::unique('students', 'email')->whereNull('deleted_at') // Ignora los eliminados
             ],
-            'phone' => 'required|digits:10',
+            'phone' => 'required|digits:9',
             'languages' => 'array',
             'languages.*' => 'exists:languages,id'
+        ];
+    }
+    public function messages()
+    {
+        return [
+            'email.unique' => 'El email ya está registrado.',
         ];
     }
 }

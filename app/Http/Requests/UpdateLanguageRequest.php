@@ -19,4 +19,10 @@ class UpdateLanguageRequest extends FormRequest
             'name' => 'required|string|max:255|unique:languages,name,' . $id // Asegura que el nombre sea único excepto en este idioma
         ];
     }
+    public function messages()
+    {
+        return [
+            'name.unique' => 'El idioma ya existe',
+        ];
+    }
 }

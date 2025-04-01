@@ -14,11 +14,11 @@ class StudentSeeder extends Seeder
     public function run(): void
     {
         $students = [
-            ['name' => 'Juan Pérez', 'email' => 'juan@example.com', 'phone' => '9876543213'],
-            ['name' => 'María López', 'email' => 'maria@example.com', 'phone' => '9876543212'],
-            ['name' => 'Carlos Ramírez', 'email' => 'carlos@example.com', 'phone' => '9876543211'],
-            ['name' => 'Ana González', 'email' => 'ana@example.com', 'phone' => '9876543214'],
-            ['name' => 'Pedro Sánchez', 'email' => 'pedro@example.com', 'phone' => '9876543215']
+            ['name' => 'Juan Pérez', 'email' => 'juan@example.com', 'phone' => '987543213'],
+            ['name' => 'María López', 'email' => 'maria@example.com', 'phone' => '987653212'],
+            ['name' => 'Carlos Ramírez', 'email' => 'carlos@example.com', 'phone' => '987654321'],
+            ['name' => 'Ana González', 'email' => 'ana@example.com', 'phone' => '987654324'],
+            ['name' => 'Pedro Sánchez', 'email' => 'pedro@example.com', 'phone' => '976543215']
         ];
 
         foreach ($students as $student) {

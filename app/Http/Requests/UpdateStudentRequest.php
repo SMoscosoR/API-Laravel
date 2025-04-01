@@ -16,7 +16,7 @@ class UpdateStudentRequest extends FormRequest
         return [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:students,email,' . $this->route('student')->id,
-            'phone' => 'sometimes|digits:10',
+            'phone' => 'sometimes|digits:9',
             'languages' => 'sometimes|array',
             'languages.*' => 'exists:languages,id'
         ];
