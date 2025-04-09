@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateLanguageRequest;
 use App\Models\Language;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use App\Http\Resources\LanguageResource;
 
 class LanguageController extends Controller
 {
@@ -16,7 +17,11 @@ class LanguageController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(Language::all(), Response::HTTP_OK);
+        $languages = Language::all();
+        return response()->json([
+            'message' => 'Lista de idiomas obtenida correctamente',
+            'languages' => LanguageResource::collection($languages)
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -25,23 +30,27 @@ class LanguageController extends Controller
     public function storeOrRestore(StoreLanguageRequest $request): JsonResponse
     {
         $data = $request->validated();
-
         $language = Language::withTrashed()->firstOrNew(['name' => $data['name']]);
 
         if ($language->exists) {
             if ($language->trashed()) {
                 $language->restore();
                 return response()->json([
-                    'message' => 'El idioma fue restaurado correctamente',
-                    'data' => $language->fresh()
+                    'message' => 'Idioma restaurado correctamente',
+                    'language' => new LanguageResource($language)
                 ], Response::HTTP_OK);
             }
 
             return response()->json(['message' => 'El idioma ya existe'], Response::HTTP_CONFLICT);
         }
 
-        $language->fill($data)->save();
-        return response()->json($language, Response::HTTP_CREATED);
+        $language->fill($data);
+        $language->save();
+
+        return response()->json([
+            'message' => 'Idioma creado correctamente',
+            'language' => new LanguageResource($language)
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -49,7 +58,10 @@ class LanguageController extends Controller
      */
     public function show(Language $language): JsonResponse
     {
-        return response()->json($language, Response::HTTP_OK);
+        return response()->json([
+            'message' => 'Idioma encontrado',
+            'language' => new LanguageResource($language)
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -61,7 +73,7 @@ class LanguageController extends Controller
 
         return response()->json([
             'message' => 'Idioma actualizado correctamente',
-            'language' => $language
+            'language' => new LanguageResource($language)
         ], Response::HTTP_OK);
     }
 

@@ -11,6 +11,7 @@ use App\Services\Student\StudentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Resources\StudentResource;
 
 class StudentController extends Controller
 {
@@ -28,38 +29,39 @@ class StudentController extends Controller
 
     public function storeOrRestore(StoreStudentRequest $request): JsonResponse
     {
-        $response = $this->studentService->storeOrRestore($request->validated());
-        return $response;
+        return $this->studentService->storeOrRestore($request->validated());
     }
 
     public function show(Student $student): JsonResponse
     {
-        return response()->json($student->load('languages'));
+        $student->load('languages');
+        return response()->json([
+            'message' => 'Estudiante encontrado',
+            'student' => new StudentResource($student)
+        ], Response::HTTP_OK);
     }
 
     public function update(UpdateStudentRequest $request, Student $student): JsonResponse
     {
-        $response = $this->studentService->updateStudent($request->validated(), $student);
-        return $response;
+        return $this->studentService->updateStudent($request->validated(), $student);
     }
 
     public function updatePartial(UpdateStudentPartialRequest $request, Student $student): JsonResponse
     {
-        $response = $this->studentService->updateStudentPartial($request->validated(), $student);
-        return $response;
+        return $this->studentService->updateStudentPartial($request->validated(), $student);
     }
 
     public function destroy(Student $student): JsonResponse
     {
-        $response = $this->studentService->deleteStudent($student);
-        return $response;
+        return $this->studentService->deleteStudent($student);
     }
 
     public function trashed(): JsonResponse
     {
+        $trashed = Student::onlyTrashed()->with('languages')->get();
         return response()->json([
             'message' => 'Lista de estudiantes eliminados obtenida correctamente',
-            'students' => Student::onlyTrashed()->get()
+            'students' => StudentResource::collection($trashed)
         ], Response::HTTP_OK);
     }
 
@@ -74,9 +76,11 @@ class StudentController extends Controller
     public function assignLanguages(Request $request, Student $student): JsonResponse
     {
         $student->languages()->sync($request->languages);
+        $student->load('languages');
+
         return response()->json([
             'message' => 'Idiomas asignados correctamente',
-            'student' => $student->load('languages')
+            'student' => new StudentResource($student)
         ], Response::HTTP_OK);
     }
 }
